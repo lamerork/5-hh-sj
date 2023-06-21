@@ -37,6 +37,7 @@ def get_salaries_hh(vacancies):
     return vacancies_processed, int(salary_amount/vacancies_processed)
 
 
+
 def get_vacancies_hh(langs):
 
     result ={}
@@ -75,9 +76,10 @@ def get_vacancies_hh(langs):
             vacancies_processed += vacancies_processed_page
             salary += salary_page
             page += 1
-#            print(f'Язык {lang} Страница: {page} из {pages} Всего найдено: {vacancies_processed}')
+
         result[lang] = {'vacancies_found': response.json()['found'], 'vacancies_processed': vacancies_processed, 'average_salary': int(salary/pages)}
     return result
+
 
 
 def predict_salary_sj(vacancy):
@@ -97,7 +99,7 @@ def get_salaries_sj(vacancies):
 
     return vacancies_processed, int(salary_amount/vacancies_processed)
 
-     
+
 
 def get_vacancies_sj(langs, token):
 
@@ -125,6 +127,8 @@ def get_vacancies_sj(langs, token):
 
     return result   
 
+
+
 def print_results(items, title):
      
     result =[['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
@@ -134,6 +138,8 @@ def print_results(items, title):
 
     table = AsciiTable(list(result), title=title)
     print(table.table)
+
+
 
 def main():
 
@@ -149,5 +155,6 @@ def main():
     print_results(result, 'Super Job Moscow')
  
     
+
 if __name__ == '__main__':
     main()

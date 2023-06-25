@@ -3,6 +3,14 @@ import time
 from environs import Env
 from terminaltables import AsciiTable
 
+TIME_SLEEP = 0.25
+AREA_HH = '1'
+PERIOD_HH = '30'
+PER_PAGE = '100'
+PERIOD_SJ = 7
+CATALOGUES_SJ = 48
+LANGS = ['JavaScript', 'Java', 'Python', 'Ruby', 'PHP', 'C++', 'C#']
+
 
 
 def predict_salary(salary_from, salary_to):
@@ -17,11 +25,6 @@ def predict_salary(salary_from, salary_to):
             return int(salary_to * 0.8)
     
 
-
-def predict_salary_hh(vacancy):
-        return predict_salary(vacancy['salary']['from'], vacancy['salary']['to'])
-
-
   
 def get_salaries_hh(vacancies):
 
@@ -32,15 +35,15 @@ def get_salaries_hh(vacancies):
         
         if vacancy['salary']:
             vacancies_processed += 1
-            salary_amount += predict_salary_hh(vacancy)
+            salary_amount += predict_salary(vacancy['salary']['from'], vacancy['salary']['to'])
        
     return vacancies_processed, int(salary_amount/vacancies_processed)
 
 
 
-def get_vacancies_hh(langs):
+def get_average_salaries_hh(langs):
 
-    result ={}
+    statistic_salaries ={}
       
     headers = {
         'User-Agent': '5-HH-SJ/1.0 (lamerork@gmail.com)',
@@ -58,32 +61,29 @@ def get_vacancies_hh(langs):
 
             payload = {
                 'text': f'Программист {lang}',
-                'area': '1',
-                'period': '30',
+                'area': AREA_HH,
+                'period': PERIOD_HH,
                 'page': page,
-                'per_page': '100'
+                'per_page': PER_PAGE
                 }
          
-            time.sleep(0.25)
+            time.sleep(TIME_SLEEP)
             response = requests.get('https://api.hh.ru/vacancies', params=payload, headers=headers)
             response.raise_for_status()
+            response.status_code
 
-            vacancies = response.json()['items']
-            pages = int(response.json()['pages'])
+            vacancies = response.json()
+            pages = int(vacancies['pages'])
             
-            vacancies_processed_page, salary_page = get_salaries_hh(vacancies)
+            vacancies_processed_page, salary_page = get_salaries_hh(vacancies['items'])
             
             vacancies_processed += vacancies_processed_page
             salary += salary_page
             page += 1
 
-        result[lang] = {'vacancies_found': response.json()['found'], 'vacancies_processed': vacancies_processed, 'average_salary': int(salary/pages)}
-    return result
+        statistic_salaries[lang] = {'vacancies_found': vacancies['found'], 'vacancies_processed': vacancies_processed, 'average_salary': int(salary/pages)}
 
-
-
-def predict_salary_sj(vacancy):
-    return predict_salary(vacancy['payment_from'], vacancy['payment_to'])
+    return statistic_salaries
 
 
 
@@ -93,17 +93,17 @@ def get_salaries_sj(vacancies):
     salary_amount = 0 
 
     for vacancy in vacancies['objects']:
-        if predict_salary_sj(vacancy):
+        if vacancy['payment_from'] or vacancy['payment_to']:
             vacancies_processed += 1
-            salary_amount += predict_salary_sj(vacancy)
+            salary_amount += predict_salary(vacancy['payment_from'], vacancy['payment_to'])
 
     return vacancies_processed, int(salary_amount/vacancies_processed)
 
 
 
-def get_vacancies_sj(langs, token):
+def get_average_salaries_sj(langs, token):
 
-    result = {}    
+    predict_salaries = {}    
     headers = {
         'X-Api-App-Id': token
     }    
@@ -113,8 +113,8 @@ def get_vacancies_sj(langs, token):
         params = {
             'keyword': f'Программист {lang}',
             'town': 'Москва',
-            'period': 7,
-            'catalogues': 48
+            'period': PERIOD_SJ,
+            'catalogues': CATALOGUES_SJ
         }
 
         response = requests.get('https://api.superjob.ru/2.0/vacancies/', params=params, headers=headers)
@@ -123,38 +123,37 @@ def get_vacancies_sj(langs, token):
 
         if vacancies["total"]:
             vacancies_processed, salary = get_salaries_sj(vacancies)
-            result[lang] = {'vacancies_found': vacancies['total'], 'vacancies_processed': vacancies_processed, 'average_salary': salary}
+            predict_salaries[lang] = {'vacancies_found': vacancies['total'], 'vacancies_processed': vacancies_processed, 'average_salary': salary}
 
-    return result   
+    return predict_salaries   
 
 
 
-def print_results(items, title):
+def get_list_vacancies(vacancies):
      
-    result =[['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
+    statistic_salaries =[['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']]
 
-    for item in items:
-        result.append([item, items[item]['vacancies_found'], items[item]['vacancies_processed'], items[item]['average_salary']])
+    for vacancy in vacancies:
+        statistic_salaries.append([vacancy, vacancies[vacancy]['vacancies_found'], vacancies[vacancy]['vacancies_processed'], vacancies[vacancy]['average_salary']])
 
-    table = AsciiTable(list(result), title=title)
-    print(table.table)
+    return statistic_salaries
 
-
+    
 
 def main():
 
     env = Env()
     env.read_env()
 
-    langs = ['JavaScript', 'Java', 'Python', 'Ruby', 'PHP', 'C++', 'C#']
+    vacancies = get_average_salaries_hh(LANGS)
 
-    result = get_vacancies_hh(langs)
-    print_results(result, 'Head Hunter Moscow')
+    table = AsciiTable(get_list_vacancies(vacancies), title='Head Hunter Moscow')
+    print(table.table)
 
-    result = get_vacancies_sj(langs, env.str('SUPERJOB_TOKEN'))
-    print_results(result, 'Super Job Moscow')
+    vacancies = get_average_salaries_sj(LANGS, env.str('SUPERJOB_TOKEN'))
  
-    
+    table = AsciiTable(get_list_vacancies(vacancies), title='Super Job Moscow')
+    print(table.table)
 
 if __name__ == '__main__':
     main()

@@ -70,7 +70,6 @@ def get_average_salaries_hh(langs):
             time.sleep(TIME_SLEEP)
             response = requests.get('https://api.hh.ru/vacancies', params=payload, headers=headers)
             response.raise_for_status()
-            response.status_code
 
             vacancies = response.json()
             pages = int(vacancies['pages'])

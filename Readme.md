@@ -22,7 +22,9 @@ SUPERJOB_TOKEN = Токен сайта SuperJob
 
 ### Как использовать
 
-```> python main.py```
+```
+> python main.py
+```
 
 Пример вывода.
 

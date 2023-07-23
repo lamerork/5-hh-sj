@@ -24,19 +24,19 @@ def predict_salary(salary_from, salary_to):
 
 def get_salaries_hh(vacancies):
 
-    processed_vacancies = 0
+    non_zero_salaries_vacancies = 0
     salary_amount = 0
 
     for vacancy in vacancies:
         if vacancy['salary']:
-            processed_vacancies += 1
+            non_zero_salaries_vacancies += 1
             salary_amount += predict_salary(vacancy['salary']['from'],
                                             vacancy['salary']['to'])
     try:
-        average_salary = int(salary_amount/processed_vacancies)
+        average_salary = int(salary_amount/non_zero_salaries_vacancies)
     except ZeroDivisionError:
         average_salary = 0
-    return processed_vacancies, average_salary
+    return non_zero_salaries_vacancies, average_salary
 
 
 def get_average_salaries_hh(langs):
@@ -84,20 +84,20 @@ def get_average_salaries_hh(langs):
 
 def get_salaries_sj(vacancies):
 
-    processed_vacancies = 0
+    non_zero_salaries_vacancies = 0
     salary_amount = 0
 
     for vacancy in vacancies:
         if vacancy['payment_from'] or vacancy['payment_to']:
-            processed_vacancies += 1
+            non_zero_salaries_vacancies += 1
             salary_amount += predict_salary(vacancy['payment_from'],
                                             vacancy['payment_to'])
 
     try:
-        average_salary = int(salary_amount/processed_vacancies)
+        average_salary = int(salary_amount/non_zero_salaries_vacancies)
     except ZeroDivisionError:
         average_salary = 0
-    return processed_vacancies, average_salary
+    return non_zero_salaries_vacancies, average_salary
 
 
 def get_average_salaries_sj(langs, token):

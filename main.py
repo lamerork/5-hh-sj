@@ -22,7 +22,7 @@ def predict_salary(salary_from, salary_to):
         return int(salary_to * 0.8)
 
 
-def get_salaries_hh(vacancies):
+def get_average_salaries_hh(vacancies):
 
     non_zero_salaries_vacancies = 0
     salary_amount = 0
@@ -39,7 +39,7 @@ def get_salaries_hh(vacancies):
     return non_zero_salaries_vacancies, average_salary
 
 
-def get_average_salaries_hh(langs):
+def get_salary_statistics_hh(langs):
 
     salary_statistic = {}
 
@@ -74,7 +74,7 @@ def get_average_salaries_hh(langs):
             pages = int(page_vacancies['pages'])
             page += 1
 
-        vacancies_processed, salary = get_salaries_hh(all_vacancies)
+        vacancies_processed, salary = get_average_salaries_hh(all_vacancies)
         salary_statistic[lang] = {'vacancies_found': page_vacancies['found'],
                                     'vacancies_processed': vacancies_processed,
                                     'average_salary': salary}
@@ -82,7 +82,7 @@ def get_average_salaries_hh(langs):
     return salary_statistic
 
 
-def get_salaries_sj(vacancies):
+def get_average_salaries_sj(vacancies):
 
     non_zero_salaries_vacancies = 0
     salary_amount = 0
@@ -100,7 +100,7 @@ def get_salaries_sj(vacancies):
     return non_zero_salaries_vacancies, average_salary
 
 
-def get_average_salaries_sj(langs, token):
+def get_salary_statistics_sj(langs, token):
 
     salary_statistic = {}
     headers = {
@@ -130,7 +130,7 @@ def get_average_salaries_sj(langs, token):
             page += 1
             pages = page_vacancies['total']
 
-        vacancies_processed, average_salary = get_salaries_sj(all_vacancies)
+        vacancies_processed, average_salary = get_average_salaries_sj(all_vacancies)
         salary_statistic[lang] = {'vacancies_found': len(all_vacancies),
                                     'vacancies_processed': vacancies_processed,
                                     'average_salary': average_salary}
@@ -158,12 +158,12 @@ def main():
     env = Env()
     env.read_env()
 
-    salary_statistic = get_average_salaries_hh(LANGS)
+    salary_statistic = get_salary_statistics_hh(LANGS)
 
     table = AsciiTable(get_table_vacancy(salary_statistic), title='Head Hunter Moscow')
     print(table.table)
 
-    salary_statistic = get_average_salaries_sj(LANGS, env.str('SUPERJOB_TOKEN'))
+    salary_statistic = get_salary_statistics_sj(LANGS, env.str('SUPERJOB_TOKEN'))
 
     table = AsciiTable(get_table_vacancy(salary_statistic), title='Super Job Moscow')
     print(table.table)
